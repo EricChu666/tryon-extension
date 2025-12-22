@@ -41,13 +41,38 @@ export type SizeChartRow = {
     [col: string]: string;
 };
 
+export type SizeChartMeasurementBasis = "body" | "garment" | "unknown";
+export type SizeChartUnit = "in" | "cm" | "unknown";
+
+export type ParsedCell = {
+    raw: string;
+    value?: number;   // single value
+    min?: number;     // range min
+    max?: number;     // range max
+};
+
+export type ParsedSizeChartRow = {
+    // Example:
+    // { "Brand Size": {raw:"XS"}, "Chest (in)": {raw:"31-32", min:31, max:32}, ... }
+    [col: string]: ParsedCell;
+};
+
 export type SizeChart = {
     hasSizeChart: boolean;
     type: "table" | "image" | "unknown";
     rawHtml?: string;          // if table
     imageUrl?: string;         // if image chart
-    rows?: SizeChartRow[];     // optional parsed rows
+
+    // MVP additions:
+    measurementBasis?: SizeChartMeasurementBasis;
+    unit?: SizeChartUnit;
+    headers?: string[];
+    parsedRows?: ParsedSizeChartRow[];
+
+    // keep old optional rows for backward compatibility (optional)
+    rows?: SizeChartRow[];
 };
+
 
 export type ProductSnapshot = {
     source: SourceSite;
