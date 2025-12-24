@@ -124,7 +124,63 @@ export function injectTryOnButton() {
     }
 
     function renderSnapshot(data: ProductSnapshot) {
-        const { title, price, primaryImage, imageGallery, confidence, sizeChart } = data;
+        const { title, price, primaryImage, imageGallery, confidence, sizeChart, bulletPoints, descriptionText } = data;
+
+        // 1. Compute Derived Signals
+        const hasPrice = !!price?.raw;
+        const hasPrimaryImage = !!primaryImage?.url;
+        const galleryCount = imageGallery.length;
+        const hasGallery = galleryCount >= 2;
+        const hasSizeChart = sizeChart.hasSizeChart;
+        const measurementBasis = sizeChart.measurementBasis;
+        const hasTextInfo = bulletPoints.length > 0 || (!!descriptionText && descriptionText.length > 0);
+        const hasParsedSizeRows = (sizeChart.parsedRows?.length ?? 0) > 0;
+        const sizeUnit = sizeChart.unit;
+
+        // 2. Compute Readiness Booleans
+        const readyForSizing = hasSizeChart && hasParsedSizeRows && (measurementBasis === "body" || measurementBasis === "garment");
+        const readyForVisualOverlay = hasPrimaryImage && hasGallery;
+        const readyForTextGuidance = hasTextInfo;
+
+        // 3. Helper for badges
+        const renderBadge = (label: string, status: "green" | "yellow" | "red", text: string) => {
+            return `
+                <div class="readiness-item">
+                    <span class="status-badge status-${status}">${label}</span>
+                    <span>${text}</span>
+                </div>
+            `;
+        };
+
+        let sizingBadge = "";
+        if (readyForSizing) {
+            sizingBadge = renderBadge("Ready", "green", `Sizing (${measurementBasis} chart found)`);
+        } else if (hasSizeChart) {
+            sizingBadge = renderBadge("Limited", "yellow", "Sizing (Chart found but incomplete)");
+        } else {
+            sizingBadge = renderBadge("Missing", "red", "Sizing (No size chart)");
+        }
+
+        let visualBadge = "";
+        if (readyForVisualOverlay) {
+            visualBadge = renderBadge("Ready", "green", `Visual (${galleryCount} images)`);
+        } else if (hasPrimaryImage) {
+            visualBadge = renderBadge("Limited", "yellow", "Visual (Only 1 image)");
+        } else {
+            visualBadge = renderBadge("Missing", "red", "Visual (No images)");
+        }
+
+        const textBadge = readyForTextGuidance
+            ? renderBadge("Ready", "green", "Text (Description found)")
+            : renderBadge("Missing", "yellow", "Text (No description)");
+
+        const checkIcon = `<span class="icon-check">✓</span>`;
+        const crossIcon = `<span class="icon-cross">✗</span>`;
+        const renderCheck = (val: boolean, label: string) => `
+            <div class="checklist-item">
+                ${val ? checkIcon : crossIcon} ${label}
+            </div>
+        `;
 
         const safeMainImageUrl = pickBestImageUrl(primaryImage?.url, imageGallery);
 
@@ -154,6 +210,23 @@ export function injectTryOnButton() {
           <span class="metric-label">Data</span>
         </div>
       </div>
+    </div>
+
+    <!-- Readiness Section -->
+    <div class="readiness-section">
+        <h4 class="readiness-title">Try-on Readiness</h4>
+        ${sizingBadge}
+        ${visualBadge}
+        ${textBadge}
+
+        <div class="checklist">
+            ${renderCheck(hasPrice, "Price detected")}
+            ${renderCheck(hasPrimaryImage, "Primary image")}
+            ${renderCheck(hasGallery, `Gallery (${galleryCount} images)`)}
+            ${renderCheck(hasTextInfo, "Text description")}
+            ${renderCheck(hasSizeChart, `Size Chart (${measurementBasis ?? "unknown"})`)}
+            ${renderCheck(hasParsedSizeRows, `Parsed rows (${sizeChart.parsedRows?.length ?? 0})`)}
+        </div>
     </div>
 
     <div class="size-chart-section">
@@ -236,10 +309,7 @@ export function injectTryOnButton() {
             });
         }
 
-
-
     }
-
 
     function renderSizeTable(rows?: ParsedSizeChartRow[], headers?: string[]) {
         if (!rows || rows.length === 0) return '<div style="color:#777; font-style:italic;">No parsed rows available.</div>';

@@ -293,23 +293,92 @@ export function parseAmazonProductPage(url: string = location.href): ProductSnap
             }
         }
 
-        const mainImgEl = firstEl(AMAZON_SELECTORS.imageMain);
+        // Build image gallery early so primary image can fall back to it.
+        // Amazon may change the main image DOM after interactions (variant change / refresh),
+        // so having a stable gallery fallback reduces "missing primary image" cases.
+        const imageGallery: string[] = [];
+        const seen = new Set<string>();
+
+        for (const sel of AMAZON_SELECTORS.imageThumbs) {
+            document.querySelectorAll(sel).forEach((node) => {
+                const img = node as HTMLImageElement;
+                const url =
+                    img.getAttribute("data-old-hires") ||
+                    img.getAttribute("data-src") ||
+                    img.getAttribute("src") ||
+                    "";
+
+                if (!url) return;
+
+                // Skip obvious non-product images (360 icon, play overlay, sprites, placeholders).
+                const lower = url.toLowerCase();
+                if (
+                    lower.includes("360_icon") ||
+                    lower.includes("play-button-overlay") ||
+                    lower.includes("sprite") ||
+                    lower.includes("transparent") ||
+                    lower.endsWith(".gif")
+                ) {
+                    return;
+                }
+
+                if (!seen.has(url)) {
+                    seen.add(url);
+                    imageGallery.push(url);
+                }
+            });
+
+            if (imageGallery.length > 0) break;
+        }
+
+
+
+        // Primary image on Amazon can shift across DOM states (initial load vs after UI refresh / variant change).
+        // We try multiple selectors and prefer the highest-resolution URL available.
+        function pickLargestFromDynamicImage(raw?: string | null): string | undefined {
+            if (!raw) return undefined;
+            try {
+                const obj = JSON.parse(raw) as Record<string, [number, number]>;
+                const entries = Object.entries(obj);
+                if (entries.length === 0) return undefined;
+
+                // Pick the URL with the largest area (w*h).
+                entries.sort((a, b) => (b[1][0] * b[1][1]) - (a[1][0] * a[1][1]));
+                return entries[0][0];
+            } catch {
+                return undefined;
+            }
+        }
+
+        const mainImgEl =
+            (document.querySelector<HTMLImageElement>("#landingImage") ??
+                document.querySelector<HTMLImageElement>("#imgTagWrapperId img") ??
+                document.querySelector<HTMLImageElement>('img[data-old-hires]') ??
+                document.querySelector<HTMLImageElement>('img[data-a-dynamic-image]') ??
+                firstEl(AMAZON_SELECTORS.imageMain)) as HTMLImageElement | null;
+
+        // Prefer old-hires, then dynamic-image (pick largest), then src.
+        const oldHires = getAttr(mainImgEl, "data-old-hires");
+        const dynamicRaw = getAttr(mainImgEl, "data-a-dynamic-image");
+        const dynamicBest = pickLargestFromDynamicImage(dynamicRaw);
+
+        // As a last resort, use og:image or fall back to the first gallery image.
+        const ogImage =
+            document.querySelector<HTMLMetaElement>('meta[property="og:image"]')?.content;
+
         const mainImgUrl =
+            oldHires ??
+            dynamicBest ??
             getAttr(mainImgEl, "src") ??
-            getAttr(mainImgEl, "data-old-hires") ??
-            getAttr(mainImgEl, "data-a-dynamic-image");
+            ogImage ??
+            imageGallery[0];
+
+
 
         const bulletPoints = allText(AMAZON_SELECTORS.bulletPoints);
 
         const descEl = firstEl(AMAZON_SELECTORS.description);
         const descriptionText = (descEl as HTMLElement | null)?.innerText?.trim() ?? "";
-
-        // gallery (best-effort)
-        const gallery: string[] = [];
-        document.querySelectorAll(AMAZON_SELECTORS.imageThumbs[0]).forEach((img) => {
-            const src = (img as HTMLImageElement).src;
-            if (src) gallery.push(src);
-        });
 
         const combinedText = [title, brand, priceRaw, bulletPoints.join(" "), descriptionText]
             .filter(Boolean)
@@ -329,7 +398,7 @@ export function parseAmazonProductPage(url: string = location.href): ProductSnap
         const hasTextInfo = (bulletPoints.length > 0) || (!!descriptionText && descriptionText.trim().length > 0);
 
         // Approximate "image richness" (more thumbnails often indicates a real PDP with gallery)
-        const galleryCount = (gallery?.length ?? 0);
+        const galleryCount = (imageGallery.length ?? 0);
         const hasGallery = galleryCount >= 2;
 
         // Size chart: MVP currently doesn't parse it, so treat as unknown/false for now.
@@ -372,7 +441,7 @@ export function parseAmazonProductPage(url: string = location.href): ProductSnap
             categoryGuess,
             price: { raw: priceRaw },
             primaryImage: mainImgUrl ? { url: mainImgUrl, alt: title } : undefined,
-            imageGallery: gallery,
+            imageGallery: imageGallery,
             bulletPoints,
             descriptionText,
             fitKeywords,

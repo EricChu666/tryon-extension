@@ -239,6 +239,59 @@ export const STYLES = `
     border-color: #555;
 }
 
+
+/* Readiness Section */
+.readiness-section {
+    margin-top: 16px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
+}
+.readiness-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 4px;
+}
+.readiness-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+.status-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 11px;
+    color: white;
+    margin-right: 8px;
+    min-width: 60px;
+    text-align: center;
+}
+.status-green { background: #008a00; }
+.status-yellow { background: #e3a900; color: #111; }
+.status-red { background: #cc0000; }
+
+.checklist {
+    margin-top: 12px;
+    border-top: 1px dashed #ddd;
+    padding-top: 8px;
+}
+.checklist-item {
+    font-size: 11px;
+    color: #555;
+    margin-bottom: 4px;
+    display: flex;
+    gap: 6px;
+}
+.icon-check { color: #008a00; font-weight: bold; }
+.icon-cross { color: #cc0000; font-weight: bold; }
+
 /* Debug */
 .debug-section {
     margin-top: 32px;
