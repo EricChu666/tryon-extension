@@ -30,5 +30,12 @@ chrome.runtime.onMessage.addListener((msg: AnyRequestMsg, _sender, sendResponse)
     return true;
 });
 
-// TODO Task2 will inject UI here.
+// Task 2: Inject UI
+import { injectTryOnButton } from "./ui/injectTryOnButton";
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", injectTryOnButton);
+} else {
+    injectTryOnButton();
+}
+
 // console.log("[TryOn MVP] content script loaded");

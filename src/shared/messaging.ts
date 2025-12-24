@@ -51,7 +51,10 @@ export type AnyRequestMsg =
 export type ResponseOk<T> = { ok: true; data: T };
 export type ResponseErr = { ok: false; error: string };
 
-export type AnyResponse<T> = ResponseOk<T> | ResponseErr;
+export type AnyResponse<T> =
+    | { ok: true; data: T }
+    | { ok: false; error: string };
+
 
 // Response typings per message
 export type MsgResponseMap = {
