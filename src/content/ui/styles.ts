@@ -316,4 +316,176 @@ export const STYLES = `
     max-height: 200px;
     overflow-y: auto;
 }
+
+/* Task 3: Static Try-On Stage */
+.tryon-container {
+    margin-bottom: 24px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 20px;
+}
+.tryon-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    text-transform: uppercase;
+    color: #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* User Photo Section */
+.user-photo-section {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-photo-thumb {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    background: #f0f0f0;
+}
+.file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+.file-input-wrapper input[type=file] {
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.btn-upload {
+    background: white;
+    border: 1px solid #888;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-upload:hover { background: #f7f7f7; }
+.btn-remove {
+    background: none;
+    border: none;
+    color: #cc0000;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+    margin-left: 8px;
+}
+
+/* Try-On Stage */
+.tryon-stage-container {
+    position: relative;
+    width: 100%;
+    height: 0;
+    padding-bottom: 133.33%; /* 3:4 Aspect Ratio */
+    background-color: #f4f4f4;
+    background-image:
+        linear-gradient(45deg, #e8e8e8 25%, transparent 25%),
+        linear-gradient(-45deg, #e8e8e8 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e8e8e8 75%),
+        linear-gradient(-45deg, transparent 75%, #e8e8e8 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px; 
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+.tryon-message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 13px;
+    padding: 20px;
+    text-align: center;
+}
+.stage-user-img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+.stage-garment-img {
+    position: absolute;
+    /* Centered initially, but transformed by JS */
+    left: 50%;
+    top: 50%;
+    width: 200px; /* Base width, scaled by transform */
+    height: auto;
+    /* transform-origin: center center; */
+    z-index: 2;
+    margin-left: -100px; /* Center alignment helpers */
+    margin-top: -100px; 
+    pointer-events: none; /* Let clicks pass through if needed */
+}
+
+/* Controls */
+.tryon-controls {
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 10px;
+    border-radius: 4px;
+}
+.control-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 11px;
+}
+.control-row label {
+    width: 50px;
+    text-align: right;
+    font-weight: 500;
+    color: #555;
+}
+.control-row input[type=range] {
+    flex: 1;
+    cursor: pointer;
+}
+.control-val {
+    width: 30px;
+    text-align: right;
+    font-family: monospace;
+    color: #333;
+}
+.control-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+.btn-reset {
+    font-size: 10px;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+.tip-text {
+    font-size: 10px;
+    color: #888;
+    margin-top: 8px;
+    font-style: italic;
+    text-align: center;
+}
+
+/* Selected Gallery Item */
+.gallery-img.selected {
+    border-color: #e77600;
+    box-shadow: 0 0 0 2px #e77600;
+}
 `;
