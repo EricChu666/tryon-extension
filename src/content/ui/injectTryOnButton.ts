@@ -1,6 +1,8 @@
 import { STYLES } from "./styles";
 import type { ProductSnapshot, ParsedSizeChartRow } from "../../shared/types";
 import type { AnyRequestMsg, AnyResponse } from "../../shared/messaging";
+import { runAnalysis } from "../vision/poseSegmentationUI";
+
 
 // Storage keys (single source of truth)
 const STORAGE_KEYS = {
@@ -308,6 +310,7 @@ async function renderSnapshot(
                    <input type="file" id="user-photo-input" accept="image/*" />
                </label>
                ${userPhotoUrl ? `<button class="btn-remove" id="btn-remove-photo">Remove</button>` : ""}
+               <button class="btn-analyze" id="btn-analyze-photo" ${userPhotoUrl ? "" : "disabled"} title="${userPhotoUrl ? "Run Pose & Segmentation" : "Upload a photo first"}" style="margin-left:8px; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;" >Analyze Photo</button>
            </div>
         </div>
 
@@ -479,6 +482,15 @@ async function renderSnapshot(
     removeBtn?.addEventListener("click", async () => {
         await setUserPhoto(null);
         renderSnapshot(data, contentArea, loadingState);
+    });
+
+    const analyzeBtn = contentArea.querySelector<HTMLButtonElement>("#btn-analyze-photo");
+    analyzeBtn?.addEventListener("click", () => {
+        if (userPhotoUrl) {
+            const stage = contentArea.querySelector<HTMLDivElement>("#tryon-stage")!;
+            const controls = contentArea.querySelector<HTMLDivElement>("#tryon-controls")!;
+            runAnalysis(userPhotoUrl, stage, controls);
+        }
     });
 
     // 4. Transform Controls

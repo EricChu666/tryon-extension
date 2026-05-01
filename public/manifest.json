@@ -32,5 +32,15 @@
             ],
             "run_at": "document_idle"
         }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [
+                "mediapipe/*"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
+        }
     ]
 }
